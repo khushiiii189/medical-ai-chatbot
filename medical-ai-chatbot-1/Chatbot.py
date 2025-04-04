@@ -8,12 +8,13 @@ from gtts import gTTS  # Import for text-to-speech
 # Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
+print("Loaded OpenAI API Key:", openai.api_key)  # Debugging
 
 if not openai.api_key:
     raise ValueError("Missing OpenAI API key. Set OPENAI_API_KEY as an environment variable.")
 
 # Flask app setup
-app = Flask(__name__)  # ✅ Fixed here
+app = Flask(__name__)  
 CORS(app)  # Enable CORS for React frontend
 
 # Audio Configuration

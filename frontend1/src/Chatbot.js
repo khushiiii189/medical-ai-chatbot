@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import Recorder from "recorder-js";
 import "./Chatbot.css";
 
-const backendUrl = "https://render.com/docs/web-services#port-binding";
+const backendUrl = "https://chatbot-backend-p2a5.onrender.com ";
 
 const MedicalChatbot = () => {
   const [conversation, setConversation] = useState([]);

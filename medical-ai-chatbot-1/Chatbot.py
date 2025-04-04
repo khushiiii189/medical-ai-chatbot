@@ -15,7 +15,9 @@ if not openai.api_key:
 
 # Flask app setup
 app = Flask(__name__)  
-CORS(app)  # Enable CORS for React frontend
+
+# Enable CORS for a specific origin (your frontend URL)
+CORS(app, origins="https://medical-ai-chatbot-99v5.onrender.com")  # Allow only the frontend domain
 
 # Audio Configuration
 UPLOAD_FOLDER = "uploads"
@@ -102,3 +104,4 @@ def home():
 
 if __name__ == '__main__':  # ✅ Fixed here
     app.run(host='0.0.0.0', port=5000)
+

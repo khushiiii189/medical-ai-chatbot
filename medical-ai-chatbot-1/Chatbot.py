@@ -17,7 +17,7 @@ if not openai.api_key:
 app = Flask(__name__)  
 
 # Enable CORS for a specific origin (your frontend URL)
-CORS(app, origins="https://chatbot-frontend-gold.vercel.app/")  # Allow only the frontend domain
+CORS(app, origins="https://medical-ai-chatbot-99v5.onrender.com")  # Allow only the frontend domain
 
 # Audio Configuration
 UPLOAD_FOLDER = "uploads"

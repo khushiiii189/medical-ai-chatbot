@@ -1,0 +1,112 @@
+.chatbot-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  background-color: #e3f2fd;
+  border-radius: 10px;
+  text-align: center;
+  font-family: "Times New Roman", serif; /* Keep consistent font */
+}
+
+.chatbox {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: "Times New Roman", serif;
+}
+
+.message {
+  padding: 8px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-family: "Times New Roman", serif;
+  text-align: left;
+}
+
+.diagnosis-box {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 16px;
+  text-align: left;
+  overflow-wrap: break-word;
+  white-space: pre-line;
+  font-family: "Times New Roman", serif;
+}
+
+.diagnosis-box h2 {
+  font-weight: bold;
+  font-style: italic;
+  font-size: 20px;
+}
+
+.diagnosis-box p {
+  font-size: 16px;
+}
+
+.diagnosis-box p strong {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.error-message {
+  color: red;
+  font-family: "Times New Roman", serif;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  margin-top: 10px;
+  font-family: "Times New Roman", serif;
+  transition: background 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* 🔹 Buttons inside diagnosis box */
+.diagnosis-box button {
+  background-color: #28a745;
+  margin-top: 10px;
+}
+
+.diagnosis-box button:hover {
+  background-color: #218838;
+}
+
+/* 🔹 Stop Recording Button (Red) */
+.stop-recording {
+  background-color: #dc3545;
+}
+
+.stop-recording:hover {
+  background-color: #c82333;
+}
+
+/* 🔹 Responsive Design */
+@media (max-width: 600px) {
+  .chatbot-container {
+    width: 90%;
+    padding: 15px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+
+  .diagnosis-box {
+    font-size: 14px;
+  }
+}

@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 import time
 
 # Load environment variables
-openai.api_key = "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"
-
+import os
+openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     raise ValueError("Missing OpenAI API key. Set OPENAI_API_KEY in your .env file.")
 

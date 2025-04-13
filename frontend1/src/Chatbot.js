@@ -2,12 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import Recorder from "recorder-js";
 import "./Chatbot.css";
 
-<<<<<<< HEAD
 const backendUrl = "http://localhost:5000";
 
-=======
-const backendUrl = "https://something-new-dtnj.onrender.com";
->>>>>>> b7c578879096a0c3f99cc7494fe934d629c374f0
 const MedicalChatbot = () => {
   const [conversation, setConversation] = useState([]);
   const [diagnosis, setDiagnosis] = useState("");

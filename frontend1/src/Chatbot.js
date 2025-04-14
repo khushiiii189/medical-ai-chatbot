@@ -172,10 +172,7 @@ const MedicalChatbot = () => {
     // Replace double spaces with a single space and trim extra spaces at the start/end
     text = text.replace(/\s+/g, ' ').trim();
     return text;
-  };
-  
-  
-  
+  }; 
 
   const speakText = (text) => {
     if (speechRef.current) window.speechSynthesis.cancel();

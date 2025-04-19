@@ -7,6 +7,8 @@ from gtts import gTTS
 from datetime import datetime, timezone
 import time
 
+
+
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print(f"OpenAI API Key Loaded: {openai.api_key}...")  
@@ -21,6 +23,11 @@ KEYWORDS_FOLDER = "keywords"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(KEYWORDS_FOLDER, exist_ok=True)
 
+
+@app.route("/")
+def home():
+    return jsonify({"message": "Medical AI backend is running."})
+    
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
     if "file" not in request.files:
@@ -124,16 +131,16 @@ def analyze_symptoms():
     Respond concisely and do not repeat sections.
     Provide structured medical advice in the following format:
 
-    *Key Symptoms Identified:*
+    Key Symptoms Identified:
     - List the most relevant symptoms or medical conditions mentioned in the conversation.
 
-    *Possible Medical Diagnosis:*
+    Possible Medical Diagnosis:
     - Provide a possible diagnosis based on the symptoms described. If uncertain, state "Diagnosis pending further details."
 
-    *Follow-up Questions for Further Diagnosis:*
+    Follow-up Questions for Further Diagnosis:
     - List any follow-up questions to further clarify the diagnosis.
 
-    *Recommended Next Steps:*
+    Recommended Next Steps:
     - Provide next steps or tests that could be done to help confirm the diagnosis.
     """
 
@@ -171,9 +178,5 @@ def text_to_speech():
         return jsonify({"error": f"Error generating speech: {str(e)}"}), 500
 
 
-import os
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Get the port from Heroku's environment
-    app.run(host="0.0.0.0", port=port)  # Listen on all IP addresses (0.0.0.0) and use the correct port
-
+     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

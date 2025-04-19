@@ -58,9 +58,8 @@ def transcribe_audio():
             try:
                 with open(audio_path, "rb") as audio_file:
                     response = openai.Audio.transcriptions.create(
-                        file=audio_file
                         model="whisper-1",
-                        
+                        file=audio_file
                     )
                     return response['text']
     

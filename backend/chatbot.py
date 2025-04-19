@@ -52,6 +52,7 @@ def transcribe_audio():
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
 
     transcription = ""
+
     try:
         # Retry transcription 3 times
         for _ in range(3):
@@ -61,8 +62,8 @@ def transcribe_audio():
                         model="whisper-1",
                         file=audio_file
                     )
-                    return response['text']
-    
+                    transcription = response["text"]
+                    break
             except openai.error.OpenAIError as e:
                 print(f"OpenAI request failed: {e}")
                 time.sleep(2)
@@ -72,9 +73,9 @@ def transcribe_audio():
 
         # Extract medical keywords using GPT-4
         prompt = f"""Extract the key medical symptoms or conditions from the following doctor-patient conversation:
-        
-        "{transcription}"
-        
+
+        \"{transcription}\"
+
         Return a list of medical symptoms, conditions, or issues that were mentioned explicitly in the conversation."""
 
         keyword_response = openai.ChatCompletion.create(
@@ -117,6 +118,7 @@ def transcribe_audio():
     except Exception as e:
         print("Unhandled server error:", traceback.format_exc())
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 
 @app.route("/analyze", methods=["POST"])

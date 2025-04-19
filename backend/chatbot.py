@@ -7,17 +7,15 @@ from gtts import gTTS
 from datetime import datetime, timezone
 import time
 
-# Load environment variables
-import os
+load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
+print(f"OpenAI API Key Loaded: {openai.api_key}...")  
 if not openai.api_key:
     raise ValueError("Missing OpenAI API key. Set OPENAI_API_KEY in your .env file.")
 
-# Flask App Setup
 app = Flask(__name__)
 CORS(app)
 
-# Folders
 UPLOAD_FOLDER = "uploads"
 KEYWORDS_FOLDER = "keywords"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -31,7 +29,7 @@ def transcribe_audio():
     file = request.files["file"]
     audio_path = os.path.join(UPLOAD_FOLDER, "latest_audio.wav")
 
-    # Ensure 'uploads' directory exists and safely remove any existing file
+    # Safely delete previous file if it exists
     if os.path.exists(audio_path):
         try:
             os.remove(audio_path)
@@ -42,31 +40,42 @@ def transcribe_audio():
             except Exception as e:
                 print(f"Failed to delete previous audio file: {e}")
 
+    # Save new file
     file.save(audio_path)
-
-    # Create timestamp for keyword file
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
 
+    transcription = ""
     try:
-        # Transcribe with Whisper
-        with open(audio_path, "rb") as audio_file:
-            response = openai.Audio.transcribe(model="whisper-1", file=audio_file)
-            transcription = response.get("text", "").strip()
+        # Retry transcription 3 times
+        for _ in range(3):
+            try:
+                with open(audio_path, "rb") as audio_file:
+                    response = openai.Audio.transcribe(
+                        model="whisper-1",
+                        file=audio_file
+                    )
+                    transcription = response.get("text", "").strip()
+                    break  # Exit loop if successful
+            except openai.error.OpenAIError as e:
+                print(f"OpenAI request failed: {e}")
+                time.sleep(2)
 
         if not transcription:
             return jsonify({"error": "Transcription failed or audio was empty."}), 500
 
-        # Extract keywords with more leniency
+        # Extract medical keywords using GPT-4
         prompt = f"""Extract the key medical symptoms or conditions from the following doctor-patient conversation:
         
         "{transcription}"
         
         Return a list of medical symptoms, conditions, or issues that were mentioned explicitly in the conversation."""
-        
+
         keyword_response = openai.ChatCompletion.create(
             model="gpt-4",
-            messages=[{"role": "system", "content": "You are an AI medical assistant extracting relevant symptoms or conditions."},
-                      {"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": "You are an AI medical assistant extracting relevant symptoms or conditions."},
+                {"role": "user", "content": prompt}
+            ]
         )
 
         keywords = keyword_response["choices"][0]["message"]["content"].strip()
@@ -77,8 +86,8 @@ def transcribe_audio():
         with open(keywords_path, "w") as f:
             f.write(keywords)
 
-        # Safe removal after use
-        time.sleep(0.5)  # Ensure file is fully released
+        # Safely delete audio file after transcription
+        time.sleep(0.5)
         try:
             os.remove(audio_path)
         except PermissionError:
@@ -115,16 +124,16 @@ def analyze_symptoms():
     Respond concisely and do not repeat sections.
     Provide structured medical advice in the following format:
 
-    **Key Symptoms Identified:**
+    *Key Symptoms Identified:*
     - List the most relevant symptoms or medical conditions mentioned in the conversation.
 
-    **Possible Medical Diagnosis:**
+    *Possible Medical Diagnosis:*
     - Provide a possible diagnosis based on the symptoms described. If uncertain, state "Diagnosis pending further details."
 
-    **Follow-up Questions for Further Diagnosis:**
+    *Follow-up Questions for Further Diagnosis:*
     - List any follow-up questions to further clarify the diagnosis.
 
-    **Recommended Next Steps:**
+    *Recommended Next Steps:*
     - Provide next steps or tests that could be done to help confirm the diagnosis.
     """
 

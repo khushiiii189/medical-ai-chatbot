@@ -1,0 +1,1 @@
+["Fatigue", "Low energy", "Cold sensitivity", "Anxiety", "Insomnia", "Weight gain", "Dry skin", "Hair loss", "Potential thyroid problems", "Family history of thyroid issues"]

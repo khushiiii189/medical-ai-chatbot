@@ -22,43 +22,55 @@ const MedicalChatbot = () => {
   const audioContextRef = useRef(null);
   const recorderRef = useRef(null);
   const silenceTimer = useRef(null);
-  const speechRef = useRef(null);
+
   const fullDiagnosisRef = useRef("");
   const followUpsRef = useRef("");
   const recommendationsRef = useRef("");
   const keySymptomsRef = useRef("");
 
+  const speakQueue = useRef([]);
+
   useEffect(() => {
-    if (keySymptomsRef.current && !displayedSymptoms) {
-      revealTextAndSpeak(keySymptomsRef.current, setDisplayedSymptoms);
+    if (keySymptomsRef.current && displayedSymptoms === "") {
+      revealText(keySymptomsRef.current, setDisplayedSymptoms, true);
     }
+
     if (fullDiagnosisRef.current && !isDiagnosisFinal) {
-      revealTextAndSpeak(fullDiagnosisRef.current, setDisplayedDiagnosis);
+      revealText(fullDiagnosisRef.current, setDisplayedDiagnosis, true);
       setIsDiagnosisFinal(true);
     }
-  }, [diagnosis, keySymptoms, isDiagnosisFinal, displayedSymptoms]);
+  }, [diagnosis, keySymptoms]);
 
-  const revealTextAndSpeak = (text, setter) => {
-    if (!text) return;
-    let index = 0;
-    let buffer = "";
-  
-    setter(""); // clear existing text
-    const interval = setInterval(() => {
-      buffer += text[index];
-      setter(buffer); // always update from buffer
-      index++;
-      if (index >= text.length) {
-        clearInterval(interval);
-        const speech = new SpeechSynthesisUtterance(buffer);
-        speech.lang = "en-US";
-        speech.rate = 1;
-        speech.pitch = 1;
-        window.speechSynthesis.speak(speech);
-      }
-    }, 60);
+  const speakWord = (text) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
   };
-  
+
+  const revealText = (text, setter, speak = false) => {
+    if (!text) return;
+
+    let index = 0;
+    setter("");
+
+    const words = text.split(" ");
+    let currentText = "";
+
+    const interval = setInterval(() => {
+      const nextWord = words[index];
+      currentText += " " + nextWord;
+      setter(currentText.trim());
+
+      index++;
+      if (index >= words.length) {
+        clearInterval(interval);
+        if (speak) {
+          const utterance = new SpeechSynthesisUtterance(currentText.trim());
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+    }, 150);
+  };
+
   const handleStartRecording = async () => {
     setError(null);
     setIsRecording(true);
@@ -66,7 +78,7 @@ const MedicalChatbot = () => {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       recorderRef.current = new Recorder(audioContextRef.current);
-      await recorderRef.current.init(stream);
+      recorderRef.current.init(stream);
       recorderRef.current.start();
 
       const audioInput = audioContextRef.current.createMediaStreamSource(stream);
@@ -86,6 +98,7 @@ const MedicalChatbot = () => {
           clearTimeout(silenceTimer.current);
           silenceTimer.current = null;
         }
+
         requestAnimationFrame(checkSilence);
       };
 
@@ -107,6 +120,7 @@ const MedicalChatbot = () => {
       const formData = new FormData();
       formData.append("file", audioFile);
 
+      // 🔧 FIXED: added method: "POST"
       const transcriptionResponse = await fetch(`${backendUrl}/transcribe`, {
         method: "POST",
         body: formData,
@@ -121,6 +135,7 @@ const MedicalChatbot = () => {
 
       setConversation([{ role: "AI", text: `Transcribed Text: ${transcriptionData.transcription}` }]);
 
+      // 🔧 FIXED: added method: "POST"
       const analysisResponse = await fetch(`${backendUrl}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -145,51 +160,23 @@ const MedicalChatbot = () => {
   };
 
   const extractSection = (text, label) => {
-    console.log("Full Text:", text);
-    console.log("Looking for section:", label);
     const safeLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`\\*\\*${safeLabel}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|$)`, "m");
+    const regex = new RegExp(`\\*{1,2}${safeLabel}:\\*{1,2}\\s*([\\s\\S]*?)(?=\\n\\*{1,2}|$)`, "m");
     const match = text.match(regex);
-    console.log("Regex match result:", match);
-    if (match) {
-      return match[1].trim();
-    }
-    return `No ${label} found. Please check the input format or try again.`;
-  };
-  
+    return match && match[1] ? match[1].trim() : null;
+  };  
 
   const cleanText = (text) => {
     if (!text) return "";
-    // Only remove potentially harmful non-ASCII symbols
-    text = text.replace(/[^\x20-\x7E\n]/g, "");
     return text.trim();
   };
 
-  const fixTypos = (text) => {
-    if (!text) return "";
-    // Remove consecutive repeated characters (handles more cases)
-    text = text.replace(/(\w)\1{2,}/g, "$1");
-    // Replace double spaces with a single space and trim extra spaces at the start/end
-    text = text.replace(/\s+/g, ' ').trim();
-    return text;
-  }; 
-
-  const speakText = (text) => {
-    if (speechRef.current) window.speechSynthesis.cancel();
-    const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "en-US";
-    speech.rate = 1;
-    speech.pitch = 1;
-    speechRef.current = speech;
-    window.speechSynthesis.speak(speech);
-  };
-
   const handleFollowUpsClick = () => {
-    revealTextAndSpeak(followUpsRef.current, setDisplayFollowUps);
+    revealText(followUpsRef.current, setDisplayFollowUps, true);
   };
 
   const handleRecommendationsClick = () => {
-    revealTextAndSpeak(recommendationsRef.current, setDisplayRecommendations);
+    revealText(recommendationsRef.current, setDisplayRecommendations, true);
   };
 
   return (
@@ -212,19 +199,18 @@ const MedicalChatbot = () => {
           <p><strong>Possible Medical Diagnosis:</strong></p>
           <p>{displayedDiagnosis}</p>
           <br />
-          <button onClick={handleFollowUpsClick}>Show Follow-up Questions</button>
-          <button onClick={handleRecommendationsClick}>Show Recommendations</button>
+          <center><button onClick={handleFollowUpsClick}>Show Follow-up Questions</button></center>
+          <center><button onClick={handleRecommendationsClick}>Show Recommendations</button></center>
           {displayFollowUps && <div><h4>Follow-up Questions:</h4><p>{displayFollowUps}</p></div>}
           {displayRecommendations && <div><h4>Recommendations:</h4><p>{displayRecommendations}</p></div>}
         </div>
       )}
 
       {!isRecording && !isProcessing && (
-        <button onClick={handleStartRecording}>Start Recording</button>
+        <center><button onClick={handleStartRecording}>Start Recording</button></center>
       )}
 
-      {isRecording && <p>🎙️ Listening... Speak now.</p>}
-      {isProcessing && <p>🔄 Processing audio, please wait...</p>}
+      {isRecording && <p><center>🎙 Listening... Speak now.</center></p>}
     </div>
   );
 };

@@ -57,10 +57,11 @@ def transcribe_audio():
         for _ in range(3):
             try:
                 with open(audio_path, "rb") as audio_file:
-                    response = openai.Audio.transcription.create(
+                   response = openai.Audio.transcribe(
                         model="whisper-1",
                         file=audio_file
                     )
+
                     return response['text']
     
             except openai.error.OpenAIError as e:

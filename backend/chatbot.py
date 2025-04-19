@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from gtts import gTTS
 from datetime import datetime, timezone
 import time
-
+import traceback
 
 
 load_dotenv()
@@ -115,6 +115,7 @@ def transcribe_audio():
     except openai.error.OpenAIError as api_err:
         return jsonify({"error": f"OpenAI error: {str(api_err)}"}), 500
     except Exception as e:
+        print("Unhandled server error:", traceback.format_exc())
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 

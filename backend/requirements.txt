@@ -1,6 +1,6 @@
 Flask==2.3.3
 flask-cors==4.0.0
-openai==1.14.2
+openai
 python-dotenv==1.0.1
 gTTS==2.5.1
 gunicorn==21.2.0
